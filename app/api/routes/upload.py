@@ -3,14 +3,14 @@ from sqlalchemy import select
 from uuid import uuid4
 
 from app.models import Upload, RSAPublicKey
-from app.api.deps import SessionDep
+from app.api.deps import WhistleSessionDep
 from app.api.enryption_utils import generate_aes_key, encrypt_file_with_aes, encrypt_key_with_rsa
 
 router = APIRouter(tags=["upload"])
 
 
 @router.post("/upload")
-async def upload_file(session: SessionDep, file: UploadFile = File(...)):
+async def upload_file(session: WhistleSessionDep, file: UploadFile = File(...)):
     contents = await file.read()
     aes_key = generate_aes_key()
     nonce, encrypted_file = encrypt_file_with_aes(contents, aes_key)

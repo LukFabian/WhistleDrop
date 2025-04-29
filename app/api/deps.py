@@ -8,9 +8,15 @@ from typing import Annotated
 db_manager = DatabaseManager(settings.WHISTLE_DB_URL, settings.JOURNALIST_DB_URL, settings.ALEMBIC_PATH)
 
 
-def get_db() -> Generator[Session, None, None]:
+def get_whistle_db() -> Generator[Session, None, None]:
     with db_manager.get_whistle_session() as session:
         yield session
 
 
-SessionDep = Annotated[Session, Depends(get_db)]
+def get_journalist_db() -> Generator[Session, None, None]:
+    with db_manager.get_journalist_session() as session:
+        yield session
+
+
+WhistleSessionDep = Annotated[Session, Depends(get_whistle_db)]
+JournalistSessionDep = Annotated[Session, Depends(get_journalist_db)]
