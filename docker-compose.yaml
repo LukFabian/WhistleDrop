@@ -1,0 +1,16 @@
+services:
+    database:
+      container_name: whistledrop_db
+      image: postgres:17.2
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ports:
+        - "${DB_HOST}:${DB_PORT}:5432"
+      restart: always
+      volumes:
+          - db_data:/var/lib/postgresql/data
+          - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+volumes:
+  db_data:
+    driver: local
