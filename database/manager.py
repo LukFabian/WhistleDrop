@@ -30,7 +30,7 @@ class DatabaseManager:
 
         # Initialize database engine and session factory
         self._initialize_engines()
-        self._check_alembic_version()
+        self._check_alembic_versions()
 
     def _initialize_engines(self):
         """
@@ -46,11 +46,19 @@ class DatabaseManager:
         except Exception as e:
             raise Exception(f"[ERROR] Failed to initialize database engine: {e}")
 
-    def _get_current_db_version(self):
+    def _get_current_whistle_db_version(self):
         """
         Fetch the current version of the database using Alembic's migration context.
         """
         with self.whistledrop_engine.connect() as connection:
+            context = MigrationContext.configure(connection)
+            return context.get_current_revision()
+
+    def _get_current_journalist_db_version(self):
+        """
+        Fetch the current version of the database using Alembic's migration context.
+        """
+        with self.journalist_engine.connect() as connection:
             context = MigrationContext.configure(connection)
             return context.get_current_revision()
 
@@ -66,24 +74,38 @@ class DatabaseManager:
         except Exception as e:
             raise Exception(f"[ERROR] Failed to fetch latest Alembic version: {e}")
 
-    def _check_alembic_version(self):
+    def _check_alembic_versions(self):
         """
         Compare the current database version to the latest Alembic version.
         Raise an error if they do not match.
         """
         try:
-            current_version = self._get_current_db_version()
+            current_whistle_version = self._get_current_whistle_db_version()
+            current_journalist_version = self._get_current_journalist_db_version()
             conn = self.whistledrop_engine.connect()
             context = MigrationContext.configure(conn)
             latest_version = context.get_current_revision()
             conn.close()
 
-            if current_version != latest_version:
+            if current_whistle_version != latest_version:
                 raise Exception(
-                    f"[ERROR] Database version mismatch! Current: {current_version}, Expected: {latest_version}.\n"
+                    f"[ERROR] Database version mismatch! Current: {current_whistle_version}, Expected: {latest_version}.\n"
                     "Run `whistledrop_alembic upgrade head` to migrate the database to the latest version."
                 )
+
+            conn = self.journalist_engine.connect()
+            context = MigrationContext.configure(conn)
+            latest_version = context.get_current_revision()
+            conn.close()
+
+            if current_journalist_version != latest_version:
+                raise Exception(
+                    f"[ERROR] Database version mismatch! Current: {current_whistle_version}, Expected: {latest_version}.\n"
+                    "Run `whistledrop_alembic upgrade head` to migrate the database to the latest version."
+                )
+
             print(f"[INFO] Database is at the latest version: {latest_version}.")
+
         except Exception as e:
             raise Exception(f"[ERROR] Database version check failed: {e}")
 

@@ -13,7 +13,6 @@ from app.models import RSAPublicKey, RSAPairs
 
 file_path = pathlib.Path(__file__).resolve()
 
-NUM_KEYS_THRESHOLD = 50
 KEYS_TO_GENERATE = 10
 
 
@@ -30,7 +29,7 @@ async def lifespan(app: FastAPI):
         )
         unused_keypairs = result.scalars().all()
 
-        if len(unused_keypairs) < NUM_KEYS_THRESHOLD:
+        if len(unused_keypairs) < KEYS_TO_GENERATE:
             keys_to_generate = KEYS_TO_GENERATE - len(unused_keypairs)
             print(f"Generating {keys_to_generate} new RSA key pairs...")
 
