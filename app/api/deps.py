@@ -5,11 +5,11 @@ from database.manager import DatabaseManager
 from fastapi import Depends
 from typing import Annotated
 
-db_manager = DatabaseManager(settings.DB_URL, settings.ALEMBIC_PATH)
+db_manager = DatabaseManager(settings.WHISTLE_DB_URL, settings.JOURNALIST_DB_URL, settings.ALEMBIC_PATH)
 
 
 def get_db() -> Generator[Session, None, None]:
-    with db_manager.get_session() as session:
+    with db_manager.get_whistle_session() as session:
         yield session
 
 

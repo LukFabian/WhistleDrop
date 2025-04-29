@@ -3,6 +3,7 @@ services:
       container_name: whistledrop_db
       image: postgres:17.2
       environment:
+        POSTGRES_MULTIPLE_DATABASES: whistledrop,journalist
         POSTGRES_USER: ${POSTGRES_USER}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       ports:

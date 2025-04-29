@@ -14,8 +14,10 @@ class Settings(BaseSettings):
     )
     DB_PORT: int = 0
     DB_HOST: str = ""
-    DB_URL: str = ""
-    ALEMBIC_PATH: pathlib.PosixPath = pathlib.Path(file_path.parent.parent.parent.joinpath("alembic", "alembic.ini")).resolve()
+    WHISTLE_DB_URL: str = ""
+    JOURNALIST_DB_URL: str = ""
+    ALEMBIC_PATH: pathlib.PosixPath = pathlib.Path(
+        file_path.parent.parent.parent.joinpath("whistledrop_alembic", "whistledrop_alembic.ini")).resolve()
     PROJECT_NAME: str = "StockScrape"
 
 

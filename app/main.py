@@ -9,7 +9,7 @@ from app.api.deps import db_manager
 from app.api.enryption_utils import generate_rsa_keypair
 from app.api.main import api_router
 from app.core.config import settings
-from app.models import RSAPublicKey
+from app.models import RSAPublicKey, RSAPairs
 
 file_path = pathlib.Path(__file__).resolve()
 
@@ -23,22 +23,52 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    with db_manager.get_session() as session:
-        result = session.execute(
-            select(RSAPublicKey).where(RSAPublicKey.is_used == False)
+    # Journalist DB session (full key pairs)
+    with db_manager.get_journalist_session() as journalist_session:
+        result = journalist_session.execute(
+            select(RSAPairs).where(RSAPairs.is_used == False)
         )
-        unused_keys = result.scalars().all()
+        unused_keypairs = result.scalars().all()
 
-        if len(unused_keys) < NUM_KEYS_THRESHOLD:
-            remaining_keys = KEYS_TO_GENERATE - len(unused_keys)
-            print(f"Generating {remaining_keys} new RSA keys...")
+        if len(unused_keypairs) < NUM_KEYS_THRESHOLD:
+            keys_to_generate = KEYS_TO_GENERATE - len(unused_keypairs)
+            print(f"Generating {keys_to_generate} new RSA key pairs...")
 
-            for i in range(remaining_keys):
+            for i in range(keys_to_generate):
                 public_key, private_key = generate_rsa_keypair()
-                # Save public key to DB
-                session.add(RSAPublicKey(public_key_pem=str.encode(public_key)))
-                print(f"Generated RSA key number: {i + 1}")
-            session.commit()
+
+                rsa_pair = RSAPairs(
+                    public_key_pem=public_key.encode(),
+                    private_key_pem=private_key.encode(),
+                    is_used=False,
+                )
+                journalist_session.add(rsa_pair)
+                print(f"Generated RSA key pair {i + 1}")
+
+            journalist_session.commit()
+
+        # Reload unused key pairs after potential generation
+        result = journalist_session.execute(
+            select(RSAPairs).where(RSAPairs.is_used == False)
+        )
+        unused_keypairs = result.scalars().all()
+
+    # WhistleDrop DB session (only public keys)
+    with db_manager.get_whistle_session() as whistle_session:
+        # Load public keys already present
+        existing_pubkeys = whistle_session.execute(select(RSAPublicKey))
+        existing_pems = {r.public_key_pem for r in existing_pubkeys.scalars().all()}
+
+        new_pubkeys = 0
+        for pair in unused_keypairs:
+            if pair.public_key_pem not in existing_pems:
+                whistle_session.add(RSAPublicKey(public_key_pem=pair.public_key_pem))
+                new_pubkeys += 1
+
+        if new_pubkeys:
+            print(f"Added {new_pubkeys} new public keys to WhistleDrop DB.")
+            whistle_session.commit()
+
     yield
 
 

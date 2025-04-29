@@ -36,3 +36,13 @@ class Upload(Base):
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, nullable=False)
 
     rsa_public_key: Mapped['RSAPublicKey'] = relationship(back_populates="uploads")
+
+
+class RSAPairs(Base):
+    __tablename__ = "rsa_key_pairs"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    public_key_pem: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)  # PEM-encoded public key
+    private_key_pem: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)  # PEM-encoded private key
+    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    used_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
