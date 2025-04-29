@@ -1,5 +1,5 @@
 from fastapi import UploadFile, File, HTTPException, APIRouter
-from sqlalchemy.future import select
+from sqlalchemy import select
 from uuid import uuid4
 
 from app.models import Upload, RSAPublicKey
