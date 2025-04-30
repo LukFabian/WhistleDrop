@@ -31,12 +31,12 @@ async def upload_file(session: WhistleSessionDep, file: UploadFile = File(...)):
 
     encrypted_aes_key = encrypt_key_with_rsa(rsa_key.public_key_pem, aes_key)
 
-    # Store everything in the Upload model
     upload = Upload(
         upload_id=str(uuid4()),
-        encrypted_file_data=nonce + encrypted_file,  # Prepend nonce
+        encrypted_file_data=nonce + encrypted_file,
         encrypted_aes_key=encrypted_aes_key,
-        rsa_public_key=rsa_key
+        rsa_public_key=rsa_key,
+        original_filename=file.filename
     )
 
     session.add(upload)
@@ -76,7 +76,8 @@ async def get_my_uploads(
 
                 matching_uploads.append({
                     "upload_id": upload.upload_id,
-                    "decrypted_preview": file_contents[:100].decode(errors="ignore"),  # Optional preview
+                    "filename": upload.original_filename or f"decrypted_{upload.upload_id}.bin",
+                    "decrypted_preview": file_contents[:100].decode(errors="ignore"),
                     "download_url": f"/file/download/{upload.upload_id}"
                 })
             except Exception as e:

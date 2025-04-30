@@ -29,6 +29,7 @@ class Upload(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     upload_id: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    original_filename: Mapped[str] = mapped_column(String(64), nullable=True)  # Save original filename
     encrypted_file_data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)  # Store file content here
     encrypted_aes_key: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     rsa_public_key_id: Mapped[int] = mapped_column(ForeignKey("rsa_public_keys.id"), nullable=False)

@@ -13,7 +13,6 @@ router = APIRouter(prefix="/file", tags=["download"])
 
 @router.get("/download/{upload_id}")
 async def download_file(upload_id: str, whistle_session: WhistleSessionDep, journalist_session: JournalistSessionDep):
-    # Fetch upload entry from whistle DB
     upload = whistle_session.execute(
         select(Upload).where(Upload.upload_id == upload_id)
     ).scalar_one_or_none()
@@ -21,10 +20,8 @@ async def download_file(upload_id: str, whistle_session: WhistleSessionDep, jour
     if not upload:
         raise HTTPException(status_code=404, detail="Upload not found")
 
-    # Extract public key used
     public_key_pem = upload.rsa_public_key.public_key_pem
 
-    # Match against private key in journalist DB
     key_pair = journalist_session.execute(
         select(RSAPairs).where(RSAPairs.public_key_pem == public_key_pem)
     ).scalar_one_or_none()
@@ -32,14 +29,20 @@ async def download_file(upload_id: str, whistle_session: WhistleSessionDep, jour
     if not key_pair:
         raise HTTPException(status_code=500, detail="Private key for decryption not found")
 
-    # Decrypt AES key
     private_key_pem = key_pair.private_key_pem.decode()
     aes_key = decrypt_key_with_rsa(private_key_pem, upload.encrypted_aes_key)
 
-    # Decrypt file contents
-    nonce = upload.encrypted_file_data[:12]  # Assuming AES GCM with 96-bit nonce
+    nonce = upload.encrypted_file_data[:12]
     ciphertext = upload.encrypted_file_data[12:]
     decrypted_data = decrypt_file_with_aes(nonce, ciphertext, aes_key)
 
-    # Stream the decrypted file
-    return StreamingResponse(BytesIO(decrypted_data), media_type="application/octet-stream")
+    # ✅ Use stored filename, fallback if None
+    filename = upload.original_filename or f"decrypted_{upload.upload_id}.bin"
+
+    return StreamingResponse(
+        BytesIO(decrypted_data),
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        }
+    )

@@ -21,6 +21,7 @@ def upgrade():
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('upload_id', sa.String(length=64), unique=True, nullable=False),  # UUID
         sa.Column('encrypted_file_data', sa.LargeBinary, nullable=False),
+        sa.Column('original_filename', sa.String(length=64), nullable=True),
         sa.Column('encrypted_aes_key', sa.LargeBinary, nullable=False),  # AES key encrypted with RSA
         sa.Column('rsa_public_key_id', sa.Integer, sa.ForeignKey('rsa_public_keys.id'), nullable=False),
         sa.Column('uploaded_at', sa.DateTime, server_default=sa.func.now(), nullable=False),
