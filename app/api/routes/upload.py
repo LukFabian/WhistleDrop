@@ -6,7 +6,7 @@ from app.models import Upload, RSAPublicKey
 from app.api.deps import WhistleSessionDep
 from app.api.enryption_utils import generate_aes_key, encrypt_file_with_aes, encrypt_key_with_rsa
 
-router = APIRouter(tags=["upload"])
+router = APIRouter(prefix="/file", tags=["upload"])
 
 
 @router.post("/upload")

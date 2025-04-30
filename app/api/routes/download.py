@@ -8,7 +8,7 @@ from app.api.deps import WhistleSessionDep, JournalistSessionDep
 from app.api.enryption_utils import decrypt_key_with_rsa, decrypt_file_with_aes
 from app.models import Upload, RSAPairs
 
-router = APIRouter(tags=["download"])
+router = APIRouter(prefix="/file", tags=["download"])
 
 
 @router.get("/download/{upload_id}")

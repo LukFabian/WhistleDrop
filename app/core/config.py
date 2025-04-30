@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     ALEMBIC_PATH: pathlib.PosixPath = pathlib.Path(
         file_path.parent.parent.parent.joinpath("whistledrop_alembic", "whistledrop_alembic.ini")).resolve()
     PROJECT_NAME: str = "StockScrape"
+    SECRET_KEY: str = ""
 
 
 settings = Settings()  # type: ignore
