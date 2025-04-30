@@ -18,9 +18,14 @@ export function registerPlugins(app: App) {
     .use(vuetify)
     .use(router)
 }
-
+let apiBaseUrl: string
+if (import.meta.env.MODE === "development") {
+  apiBaseUrl = "http://127.0.0.1:8000"
+} else {
+  apiBaseUrl = "http://127.0.0.1:8000"
+}
 const config = new Configuration({
-  basePath: '',                 // leave empty – we hand the baseURL via axios
+  basePath: apiBaseUrl,
 });
 
 export const uploadApi = new UploadApi(config, undefined, http);

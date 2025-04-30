@@ -6,12 +6,38 @@ services:
         POSTGRES_MULTIPLE_DATABASES: whistledrop,journalist
         POSTGRES_USER: ${POSTGRES_USER}
         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      ports:
-        - "${DB_HOST}:${DB_PORT}:5432"
       restart: always
       volumes:
           - db_data:/var/lib/postgresql/data
           - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      networks:
+        - whistle_net
+
+    frontend:
+      build: ./frontend
+      container_name: whistle_frontend
+      ports:
+        - "127.0.0.1:8080:80"
+      networks:
+        - whistle_net
+      depends_on:
+        - backend
+      environment:
+        PRODUCTION: "true"
+
+    backend:
+      build: .
+      container_name: whistle_backend
+      ports:
+        - "127.0.0.1:8000:8000"
+      networks:
+        - whistle_net
+      depends_on:
+        - database
+
 volumes:
   db_data:
     driver: local
+networks:
+  whistle_net:
+    driver: bridge
