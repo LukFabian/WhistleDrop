@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { uploadApi } from '@/plugins' // <-- Import your generated API client
+import { uploadApi } from '@/plugins'
 
 // States
 const file = ref<File | null>(null)
