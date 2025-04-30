@@ -17,12 +17,8 @@ class RSAPublicKey(Base):
     __tablename__ = "rsa_public_keys"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    public_key_pem: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)  # PEM-encoded public key
-    is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
-    used_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-
-    uploads: Mapped[list['Upload']] = relationship(
+    public_key_pem: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    uploads: Mapped[list["Upload"]] = relationship(
         back_populates="rsa_public_key",
         cascade="all, delete-orphan"
     )
