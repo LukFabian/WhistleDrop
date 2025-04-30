@@ -17,26 +17,22 @@
 <script setup>
 import {ref} from 'vue'
 import {useRouter} from 'vue-router'
-import {loginApi} from '@/plugins'
+import {useAuthStore} from "@/stores/auth.js";
 
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
 const router = useRouter()
+const auth = useAuthStore()
 
 const login = async () => {
-  loading.value = true
-  error.value = ''
   try {
-    const response = await loginApi.loginLogin(email.value, password.value)
-
-    localStorage.setItem('jwt', response.data.access_token)
-    router.push('/download')
-  } catch (e) {
-    error.value = 'Login failed'
-  } finally {
-    loading.value = false
+    await auth.login(email.value, password.value)
+    await router.push('/')
+  } catch (err) {
+    error.value = err.response?.data?.detail || 'Login failed'
   }
 }
+
 </script>

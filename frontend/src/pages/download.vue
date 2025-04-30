@@ -1,44 +1,90 @@
 <template>
   <v-container>
-    <h1>Download Encrypted Files</h1>
-    <v-btn color="primary" @click="fetchFiles">Fetch Files</v-btn>
-    <v-list v-if="files.length">
-      <v-list-item
-        v-for="file in files"
-        :key="file.upload_id"
-        :title="'Download ' + file.upload_id"
-        @click="downloadFile(file.upload_id)"
-      />
-    </v-list>
+    <v-row justify="space-between" align="center" class="mb-4">
+      <v-col>
+        <h2>My Uploaded Files</h2>
+      </v-col>
+      <v-col class="text-right">
+        Logged in as: <strong>{{ auth.userEmail }}</strong>
+      </v-col>
+    </v-row>
+
+    <v-alert v-if="error" type="error" class="mb-4">
+      {{ error }}
+    </v-alert>
+
+    <v-card v-if="files.length === 0" class="pa-4">
+      No uploaded files found.
+    </v-card>
+
+    <v-row>
+      <v-col v-for="file in files" :key="file.upload_id" cols="12" md="6" lg="4">
+        <v-card>
+          <v-card-title>
+            {{ file.filename }}
+          </v-card-title>
+          <v-card-subtitle>
+            File ID: {{ file.upload_id }}
+          </v-card-subtitle>
+          <v-card-text>
+            Preview: <small>{{ file.decrypted_preview }}</small>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn @click="downloadFile(file.filename, file.upload_id)" color="primary">Download</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import axios from 'axios'
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import {downloadApi, uploadApi} from '@/plugins'
 
-const files = ref([])
+const files = ref<any[]>([])
+const error = ref<string | null>(null)
+
+const auth = useAuthStore()
 
 const fetchFiles = async () => {
-  const token = localStorage.getItem('jwt')
-  const res = await axios.get('/files', {
-    headers: { Authorization: `Bearer ${token}` }
-  })
-  files.value = res.data
+  try {
+    const response = await uploadApi.uploadGetMyUploads()
+    files.value = response.data
+  } catch (err: any) {
+    error.value = err.response?.data?.detail || 'Failed to fetch files'
+  }
 }
 
-const downloadFile = async (uploadId) => {
-  const token = localStorage.getItem('jwt')
-  const res = await axios.get(`/download/${uploadId}`, {
-    responseType: 'blob',
-    headers: { Authorization: `Bearer ${token}` }
-  })
+const downloadFile = async (fileName: string, uploadId: string) => {
+  try {
+    const response = await downloadApi.downloadDownloadFile(uploadId, {
+      responseType: 'blob',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    })
 
-  const url = window.URL.createObjectURL(new Blob([res.data]))
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', `${uploadId}.zip`)
-  document.body.appendChild(link)
-  link.click()
+    // Force browser download
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    if (fileName.startsWith("decrypted_") && fileName.endsWith(".bin")) {
+      link.setAttribute('download', `file_${uploadId}`)
+    } else {
+      link.setAttribute('download', fileName)
+    }
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } catch (err: any) {
+    console.error('Download failed', err)
+    error.value = 'Failed to download file'
+  }
 }
+
+onMounted(() => {
+  fetchFiles()
+})
 </script>
