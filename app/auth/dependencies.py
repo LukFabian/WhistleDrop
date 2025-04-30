@@ -3,10 +3,13 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from app.api.deps import WhistleSessionDep
 from sqlalchemy import select
+
+from app.core.config import settings
 from app.models import Journalist
-from app.auth.security import SECRET_KEY, ALGORITHM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = "HS256"
 
 async def get_current_journalist(session: WhistleSessionDep = Depends(), token: str = Depends(oauth2_scheme)) -> Journalist:
     credentials_exception = HTTPException(

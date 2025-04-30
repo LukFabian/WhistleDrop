@@ -1,9 +1,10 @@
 from typing import List
 
-from fastapi import UploadFile, File, HTTPException, APIRouter
+from fastapi import UploadFile, File, HTTPException, APIRouter, Depends
 from sqlalchemy import select
 from uuid import uuid4
 
+from app.auth.security import get_current_user
 from app.models import Upload, RSAPublicKey, RSAPairs
 from app.api.deps import WhistleSessionDep, JournalistSessionDep
 from app.api.enryption_utils import generate_aes_key, encrypt_file_with_aes, encrypt_key_with_rsa, decrypt_key_with_rsa, \
@@ -49,6 +50,7 @@ async def upload_file(session: WhistleSessionDep, file: UploadFile = File(...)):
 async def get_my_uploads(
         whistle_session: WhistleSessionDep,
         journalist_session: JournalistSessionDep,
+        user=Depends(get_current_user)
 ):
     result = whistle_session.execute(
         select(RSAPublicKey)

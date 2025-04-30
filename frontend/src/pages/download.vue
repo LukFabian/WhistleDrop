@@ -7,6 +7,7 @@
       <v-col class="text-right">
         Logged in as: <strong>{{ auth.userEmail }}</strong>
       </v-col>
+      <v-btn color="error" @click="handleLogout()" class="ml-2">Logout</v-btn>
     </v-row>
 
     <v-alert v-if="error" type="error" class="mb-4">
@@ -42,10 +43,11 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import {downloadApi, uploadApi} from '@/plugins'
+import {useRouter} from 'vue-router'
 
 const files = ref<any[]>([])
 const error = ref<string | null>(null)
-
+const router = useRouter()
 const auth = useAuthStore()
 
 const fetchFiles = async () => {
@@ -55,6 +57,11 @@ const fetchFiles = async () => {
   } catch (err: any) {
     error.value = err.response?.data?.detail || 'Failed to fetch files'
   }
+}
+
+const handleLogout = () => {
+  auth.logout()
+  router.push('/')
 }
 
 const downloadFile = async (fileName: string, uploadId: string) => {

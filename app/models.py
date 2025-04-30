@@ -78,3 +78,11 @@ class JournalistRegister(BaseModel):
         if not any(c.isdigit() for c in value):
             raise ValueError("Password must have at least one digit")
         return value
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str | None = None
