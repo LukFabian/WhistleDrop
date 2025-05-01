@@ -22,7 +22,7 @@ let apiBaseUrl: string
 if (import.meta.env.MODE === "development") {
   apiBaseUrl = "http://127.0.0.1:8000"
 } else {
-  apiBaseUrl = "http://127.0.0.1:8000"
+  apiBaseUrl = "http://YOUR_ONION_ADDRESS.onion:8000"
 }
 const config = new Configuration({
   basePath: apiBaseUrl,

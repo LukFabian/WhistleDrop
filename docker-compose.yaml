@@ -1,7 +1,10 @@
 services:
     database:
       container_name: whistledrop_db
+      hostname: whistledrop_db
       image: postgres:17.2
+      ports:
+        - "127.0.0.1:5432:5432"
       environment:
         POSTGRES_MULTIPLE_DATABASES: whistledrop,journalist
         POSTGRES_USER: ${POSTGRES_USER}
@@ -16,6 +19,7 @@ services:
     frontend:
       build: ./frontend
       container_name: whistle_frontend
+      hostname: whistledrop_frontend
       ports:
         - "127.0.0.1:8080:80"
       networks:
@@ -28,12 +32,28 @@ services:
     backend:
       build: .
       container_name: whistle_backend
+      hostname: whistledrop_backend
       ports:
         - "127.0.0.1:8000:8000"
       networks:
         - whistle_net
       depends_on:
         - database
+
+    tor:
+      image: goldy/tor-hidden-service:latest
+      container_name: whistledrop_tor
+      links:
+        - frontend
+      volumes:
+        - ./tor/hidden_service:/var/lib/tor/hidden_service
+      networks:
+        - whistle_net
+      environment:
+        SERVICE1_TOR_SERVICE_HOSTS: 80:whistledrop_frontend:80, 8000:whistledrop_backend:8000
+      depends_on:
+        - backend
+        - frontend
 
 volumes:
   db_data:

@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+let apiBaseUrl: string
+if (import.meta.env.MODE === "development") {
+  apiBaseUrl = "http://127.0.0.1:8000"
+} else {
+  apiBaseUrl = "http://YOUR_ONION_ADDRESS.onion:8000"
+}
 export const http = axios.create({
-  baseURL: "http://127.0.0.1:8000",
+  baseURL: apiBaseUrl,
   timeout: 10_000,
 });
 
