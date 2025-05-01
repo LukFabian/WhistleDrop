@@ -72,18 +72,28 @@ cd whistledrop
 cp .env.example .env
 ```
 
-### 3. Start the entire stack
+### 3. Start the backend
 
 ```bash
-docker compose up -d
+docker compose up -d backend
 ```
 
-### 4. Access the service
+### 4. Generate openapi code
+```bash
+cd ./frontend && /bin/bash ./generate_openapi.sh
+```
+
+### 5. Start the other services
+```
+cd ../ && docker compose up -d
+```
+
+### 6. Access the service
 
 - **Backend API (local testing):** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **Frontend (local web UI):** [http://127.0.0.1:8080](http://127.0.0.1:8080)
 
-### 5. Configure the frontend for your `.onion` domain
+### 7. Configure the frontend for your `.onion` domain
 
 Run this command to automatically replace placeholder addresses in your frontend code:
 
@@ -92,13 +102,13 @@ ONION_ADDR=$(sudo cat ./tor/hidden_service/service1/hostname) && \
 sed -i "s|YOUR_ONION_ADDRESS\.onion|$ONION_ADDR|g" ./frontend/src/lib/http.ts ./frontend/src/plugins/index.ts
 ```
 
-### 6. Restart the frontend container
+### 8. Restart the frontend container
 
 ```bash
 docker compose up frontend -d --force-recreate
 ```
 
-### 7. Navigate to your running onion service
+### 9. Navigate to your running onion service
 
 Lookup your .onion domain:
 
